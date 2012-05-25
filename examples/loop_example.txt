@@ -1,0 +1,52 @@
+{
+	"#p-lang li": {
+		"each": {
+			"a": {
+				"text()": [
+					"Simple English",
+					"العربية",
+					"Bahasa Indonesia",
+					"Bahasa Melayu",
+					"Български",
+					"Català",
+					"Česky",
+					"Dansk",
+					"Deutsch",
+					"Eesti",
+					"Ελληνικά",
+					"Español",
+					"Esperanto",
+					"Euskara",
+					"فارسی",
+					"Français",
+					"Galego",
+					"한국어",
+					"עברית",
+					"Hrvatski",
+					"Italiano",
+					"Lietuvių",
+					"Magyar",
+					"Nederlands",
+					"日本語",
+					"‪Norsk (bokmål)‬",
+					"‪Norsk (nynorsk)‬",
+					"Polski",
+					"Português",
+					"Română",
+					"Русский",
+					"Slovenčina",
+					"Slovenščina",
+					"Српски / Srpski",
+					"Srpskohrvatski / Српскохрватски",
+					"Suomi",
+					"Svenska",
+					"ไทย",
+					"Tiếng Việt",
+					"Türkçe",
+					"Українська",
+					"中文"
+				]
+			}
+		}
+	}
+}

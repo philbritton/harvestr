@@ -1,0 +1,52 @@
+{
+	"#p-lang li": {
+		"each": {
+			"a": {
+				"function": [
+					"Simple%20English",
+					"%u0627%u0644%u0639%u0631%u0628%u064A%u0629",
+					"Bahasa%20Indonesia",
+					"Bahasa%20Melayu",
+					"%u0411%u044A%u043B%u0433%u0430%u0440%u0441%u043A%u0438",
+					"Catal%E0",
+					"%u010Cesky",
+					"Dansk",
+					"Deutsch",
+					"Eesti",
+					"%u0395%u03BB%u03BB%u03B7%u03BD%u03B9%u03BA%u03AC",
+					"Espa%F1ol",
+					"Esperanto",
+					"Euskara",
+					"%u0641%u0627%u0631%u0633%u06CC",
+					"Fran%E7ais",
+					"Galego",
+					"%uD55C%uAD6D%uC5B4",
+					"%u05E2%u05D1%u05E8%u05D9%u05EA",
+					"Hrvatski",
+					"Italiano",
+					"Lietuvi%u0173",
+					"Magyar",
+					"Nederlands",
+					"%u65E5%u672C%u8A9E",
+					"%u202ANorsk%20%28bokm%E5l%29%u202C",
+					"%u202ANorsk%20%28nynorsk%29%u202C",
+					"Polski",
+					"Portugu%EAs",
+					"Rom%E2n%u0103",
+					"%u0420%u0443%u0441%u0441%u043A%u0438%u0439",
+					"Sloven%u010Dina",
+					"Sloven%u0161%u010Dina",
+					"%u0421%u0440%u043F%u0441%u043A%u0438%20/%20Srpski",
+					"Srpskohrvatski%20/%20%u0421%u0440%u043F%u0441%u043A%u043E%u0445%u0440%u0432%u0430%u0442%u0441%u043A%u0438",
+					"Suomi",
+					"Svenska",
+					"%u0E44%u0E17%u0E22",
+					"Ti%u1EBFng%20Vi%u1EC7t",
+					"T%FCrk%E7e",
+					"%u0423%u043A%u0440%u0430%u0457%u043D%u0441%u044C%u043A%u0430",
+					"%u4E2D%u6587"
+				]
+			}
+		}
+	}
+}

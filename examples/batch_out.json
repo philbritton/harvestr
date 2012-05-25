@@ -1,0 +1,34 @@
+{
+	"http://www.google.ca/finance?q=NASDAQ:GOOG": {
+		"#market-data-div table:first tr": {
+			"each": {
+				"td.val": {
+					"text()": [
+						"31.77 - 33.21\n",
+						"30.94 - 45.00\n",
+						"32.95\n",
+						"50.28M/231.17M\n",
+						"70.62B\n",
+						"105.72\n"
+					]
+				}
+			}
+		}
+	},
+	"undefined": {
+		"#market-data-div table:first tr": {
+			"each": {
+				"td.val": {
+					"text()": [
+						"598.87 - 611.92\n",
+						"473.02 - 670.25\n",
+						"609.16\n",
+						"1.89M/2.98M\n",
+						"196.81B\n",
+						"18.30\n"
+					]
+				}
+			}
+		}
+	}
+}

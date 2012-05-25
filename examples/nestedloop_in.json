@@ -1,0 +1,16 @@
+{	"harvestr:meta" : {
+		"target" : "http://en.wikipedia.org/wiki/List_of_emerging_technologies",
+		"output" : {
+			"filename" : "nestedloop_out.json"
+		}
+	},
+	"harvestr:schema" : {
+		"#mw-content-text table:eq(2) tr" : {
+			"each" : {
+				"td" : {
+					"each" : "text()"
+				}
+			}
+		}
+	}
+}

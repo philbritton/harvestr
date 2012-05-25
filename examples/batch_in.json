@@ -1,0 +1,17 @@
+{	"harvestr:meta" : {
+		"output" : {
+			"filename" : "batch_out.json"
+		},
+		"target" : [
+			"http://www.google.ca/finance?q=NASDAQ:FB",
+			"http://www.google.ca/finance?q=NASDAQ:GOOG"
+		]
+	},
+	"harvestr:schema" : {
+		"#market-data-div table:first tr" : {
+			"each" : {
+				"td.val" : "text()"
+			}
+		}
+	}
+}

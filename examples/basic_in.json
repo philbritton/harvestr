@@ -1,0 +1,10 @@
+{	"harvestr:meta" : {
+		"output" : {
+			"filename" : "basic_out.json"
+		},
+		"target" : "http://en.wikipedia.org/wiki/Main_Page"
+	},
+	"harvestr:schema" : {
+		"#articlecount a:first":"text()"
+	}
+}
