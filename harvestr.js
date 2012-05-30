@@ -156,6 +156,66 @@ var Harvestr = (function() {
 					return false;
 			}
 			return true;
+		},
+		//
+		// grab headers for csv/delimited file output
+		//
+		getHeaders: function(obj,res) {
+			var header = '', paths = [], counts = {}, count = 0;
+			// for each header selector path in options provided by user
+			for(path in obj) {
+				// if array, assume headers correspond to array of results
+				if(Array.isArray(obj[path])) {
+					var th = 0;
+					// do this for each sub-result of the path, record index
+					obj[path].forEach(function(p) {
+						var pathArray = path.split('|');
+						pathArray.push(th);
+						paths.push(pathArray);
+						// for the given path array, determine row count
+						counts[path] = utils.traverseCount(res,pathArray);
+						p.replace(/,/g,'\,');
+						th++;
+					});
+					header += (count>0?',':'')+obj[path].join(',');
+				} else {
+					// single header for the given path
+					paths.push(path.split('|'));
+					counts[path] = utils.traverseCount(res,path.split('|'));
+					header += (count>0?',':'')+obj[path].replace(/,/g,'\,');
+				}
+				// overall header count
+				count++;
+			}
+			return {
+				header:	header+'\r\n',
+				paths:	paths,
+				counts:	counts
+			};
+		},
+		traverseCount : function(obj,path) {
+			var val = obj, count = 0;
+			for(i=0;i<path.length;i++) {
+				if(!val) return count;
+				if(Array.isArray(val[path[i]]))
+					return val[path[i]].length;
+				else
+					val = val[path[i]];
+			}
+		},
+		traverse: function(obj,path,index) {
+			var val = obj;
+			path.forEach(function(p) {
+				if(!val) {
+					utils.log(1,'Header paths are invalid ('+p+'). Failed to traverse result object.');
+					return false;
+				}
+				if(Array.isArray(val[p]) && Array.isArray(val[p][index]))
+					val = val[p][index];
+				else
+					val = val[p];
+			});
+			return val;
 		}
 	};
 
@@ -180,10 +240,73 @@ var Harvestr = (function() {
 			else 	callback(cheerio.load(body));
 		});
 	};
+	
+	this.save = function(opts,result) {
+		var json = false;
+		if(opts.output.path.indexOf('.csv')!=-1 && opts.headers) {
+			utils.log(4,'Rendering output as comma-delimited csv');
+			var guide = utils.getHeaders(opts.headers,result),
+				sheet = guide.header;
+
+			function renderCsv(row,index) {
+				var count, start=true;
+				guide.paths.forEach(function(p) {
+					var val = utils.traverse(row,p,index);
+					if(start) count = 0;
+					if(Array.isArray(val)) {
+						if(val[count])	sheet+= '"'+val[count].trim()+'",';
+						else			sheet+= ' ,';
+						count++;
+					} else {
+						if(val) sheet += '"'+val.trim()+'",';
+						else	sheet += ' ,';
+					}
+					start=true;
+				});
+				sheet += ' \r\n';
+			}
+				
+			if(Object.keys(result)[0].indexOf('http')!=-1)
+				for(r in result)
+					if(Object.keys(guide.counts)>0)
+						for(i=0;i<guide.counts[Object.keys(guide.counts)[0]];i++)
+							renderCsv(result[r],i);
+					else
+						renderCsv(result[r],0);
+			else
+				if(Object.keys(guide.counts).length>0) {
+					for(i=0;i<guide.counts[Object.keys(guide.counts)[0]];i++)
+						renderCsv(result,i);
+				}
+				else
+					renderCsv(result,0);
+				
+			result = sheet;
+		} else {
+			utils.log(4,'Rendering output as harvestr JSON result object');
+			json = true;
+		}
+		var file = fs.createWriteStream(opts.output.path,opts.output.options);
+		if(file.writable) {
+			file.once('open', function(fd) {
+				utils.log(3,'Wrote result to file: '+opts.output.path);
+				utils.log();
+				file.write((json?JSON.stringify(result,null,'\t'):result));
+			});
+			file.once('error', function(e) {
+				utils.log(1,'Error writing to file. '+JSON.stringify(e));
+			});
+		}
+		else
+			utils.log(1,'Unable to write to file '+getOpts.path);
+	};
 
 	this.getBatch = function(urls,schema,callback,timeout) {
 		var dis 	= this,
 			result	= {};
+		
+		if(typeof callback === 'object' && !utils.exists(callback,'output.path'))
+			return utils.log(1,'Invalid getBatch callback parameter. File options object must have an output.path attribute.');
 		
 		if(Array.isArray(urls)) {
 			next(0);
@@ -191,25 +314,14 @@ var Harvestr = (function() {
 		
 		function next(index) {
 			dis.get(urls[index],schema,function(res) {
-				index++;
 				result[urls[index]] = res;
+				index++;
 				if(index==urls.length) {
 					if(typeof callback === 'function')
 						callback(result);
 					else if(typeof callback === 'object') {
-						var getOpts = callback;
-						if(getOpts.path) {
-							var file = fs.createWriteStream(getOpts.path,getOpts.options);
-							if(file.writable)
-								file.once('open', function(fd) {
-									utils.log(3,'Wrote result to file: '+getOpts.path);
-									utils.log();
-									file.write(JSON.stringify(result,null,'\t'));
-								});
-							else
-								utils.log(1,'Unable to write to file '+getOpts.path);
-						} else
-							utils.log(1,'Unable to write to file '+getOpts.path);
+						var opts = callback;
+						Harvestr.save(opts,result);
 					}
 				}
 				else
@@ -228,21 +340,12 @@ var Harvestr = (function() {
 		
 		// check if we need to write the response to a file
 		if(typeof done == 'object') {
-			var getOpts = done;
-			if(done.path) {
-				done = function(result) {
-					var file = fs.createWriteStream(getOpts.path,getOpts.options);
-					if(file.writable)
-						file.once('open', function(fd) {
-							utils.log(3,'Wrote result to file: '+getOpts.path);
-							utils.log();
-							file.write(JSON.stringify(result,null,'\t'));
-						});
-					else
-						utils.log(1,'Unable to write to file '+getOpts.path);
-				};
-			} else
-				return utils.log(1,'Invalid GET request finish parameter. Object must have path attribute.');
+			if(!utils.exists(done,'output.path'))
+				return utils.log(1,'Invalid get callback parameter. File options object must have an output.path attribute.');
+			var opts = done;
+			done = function(result) {
+				Harvestr.save(opts,result);
+			};
 		}
 		
 		fetch(url,function($) {
@@ -254,7 +357,9 @@ var Harvestr = (function() {
 				process(s,{},schema,function(err,topResult) {
 					if(err) cb(err);
 					else {
-						response = topResult;
+						for(res in topResult) {
+							response[res] = topResult[res];
+						}
 						cb();
 					}
 				});
@@ -292,7 +397,7 @@ var Harvestr = (function() {
 					if(!obj[s])	obj[s] 	= {};
 					if((cmd=='each' || multi || parentSize>1) && !obj[s][cmd]) obj[s][cmd] = [];
 					if(cmd=='each' || multi || parentSize>1)	obj[s][cmd].push(val);
-					else			obj[s][cmd] = val;
+					else obj[s][cmd] = val;
 				}
 				
 				// do we have nested operations or does it end here?
@@ -390,6 +495,7 @@ var Harvestr = (function() {
 										
 										function performOp(ind,t) {
 											if(!obj[s]) obj[s] = {};
+											if(!obj[s][cmd]) obj[s][cmd] = {};
 											async.forEach(select, function(subkey,subcb) {
 												process(subkey,obj[s][cmd],model[s][cmd],function(err,subresult) {
 													// augment our response data
@@ -469,15 +575,16 @@ var Harvestr = (function() {
 	// check if we were run from the command line
 	var	pargE		= process.argv.indexOf('-e'),
 		pargI		= process.argv.indexOf('-i'),
-		pargO		= process.argv.indexOf('-o');
+		pargO		= process.argv.indexOf('-o'),
+		pargC		= process.argv.indexOf('-c');
 		
 		utils.log();
 		utils.log(5,'harvestr :)\twesquire.ca/harvestr');
+
+	if(pargE!=-1 && process.argv[pargE+1])
+		config.encoding = process.argv[pargE+1];
 		
-	if(pargI>-1 && process.argv[pargI+1]) {
-	
-		if(pargE!=-1 && process.argv[pargE+1])
-			config.encoding = process.argv[pargE+1];
+	if(pargI>-1 && process.argv[pargI+1] && pargC==-1) {
 			
 		// read input file
 		var fn 		= process.argv[pargI+1],
@@ -499,11 +606,11 @@ var Harvestr = (function() {
 						
 						// run our query and pass through the output info
 						if(json['harvestr:meta'] && json['harvestr:schema']) {
-							var finished = {};
+							var finished = {}; finished.output = {};
 							if(pargO>-1)
-								finished.path = process.argv[pargO+1];
-							else if(utils.exists(json,'harvestr:meta.output.filename'))
-								finished.path = json['harvestr:meta'].output.filename;
+								finished.output.path = process.argv[pargO+1];
+							else if(utils.exists(json,'harvestr:meta.output.path'))
+								finished = json['harvestr:meta'];
 							else
 								finished = function(result) {
 									console.log(result);
@@ -530,6 +637,65 @@ var Harvestr = (function() {
 			});
 		else
 			utils.log(1,'Unable to open '+fn);
+			
+	} else if(pargI>-1 && process.argv[pargI+1] && pargC>-1 && process.argv[pargC+1]) {
+	
+		// read input file
+		var fn 		= process.argv[pargI+1],
+			file	= fs.createReadStream(fn, {
+				flags: 		'r',
+				encoding:	config.encoding
+			});
+		if(file.readable)
+			file.once('open', function(fd) {
+				utils.log(4,'Reading '+fn);
+				var raw = '';
+				file.on('data', function(data) {
+					raw += data;
+				});
+				file.on('end', function() {
+					utils.log(4,'Finished reading '+fn);
+					var hf		= process.argv[pargC+1],
+						head	= fs.createReadStream(hf, {
+							flags: 		'r',
+							encoding:	config.encoding
+						});
+					if(head.readable)
+						head.once('open', function(fd) {
+							utils.log(4,'Reading '+hf);
+							var rawHead = '';
+							head.on('data', function(data2) {
+								rawHead += data2;
+							});
+							head.on('end',function() {
+								utils.log(4,'Finished reading '+hf);
+								var json, jsonHead;
+								try{
+									json 		= JSON.parse(raw);
+									jsonHead	= JSON.parse(rawHead);
+									
+									if(jsonHead['harvestr:meta'] && jsonHead['harvestr:meta']['headers']) {
+										Harvestr.save(jsonHead['harvestr:meta'],json);
+									} else
+										utils.log(1,'Invalid header file. No harvestr:meta key found with headers.');
+									
+								} catch(e) {
+									// likely a syntax error
+									utils.log(1,'Invalid syntax in input or header file. Expected valid JSON');
+									throw e;
+								}
+							});
+						});
+					else	utils.log(1,'Unable to open '+hf);
+				});
+				file.on('error', function(e) {
+					utils.log(1,'An error occurred while reading stream for file '+fn);
+					throw e;
+				});
+			});
+		else
+			utils.log(1,'Unable to open '+fn);
+	
 	} else {
 		utils.log();
 		utils.log(0,'harvestr command line options:');
@@ -541,7 +707,8 @@ var Harvestr = (function() {
 		get:		get,
 		getBatch:	getBatch,
 		config:		config,
-		log:		utils.log
+		log:		utils.log,
+		save:		save
 	};
 
 })();

@@ -19,9 +19,13 @@ Scrape the web with a JSON object.
 
 *Still under heavy development!*
 
+---
+
 # What
 
 Harvestr allows you to build & run a web scraper based on "schemas" with a simple JSON object structure. These can be updated & reused easily, and matched with the corresponding Harvestr result object to render data in portable formats, like csv or tab-delimited text.
+
+---
 
 # How
 
@@ -29,7 +33,7 @@ See the `examples` folder for sample code & result objects compared with their t
 
 ## Basic Use
 
-	var Harvestr = require('../harvestr').start;
+	var Harvestr = require('harvestr').start;
 
 	Harvestr.get('http://en.wikipedia.org/wiki/Main_Page',{"#articlecount a:first":"text()"},
 		function(result) {
@@ -156,6 +160,8 @@ This is equivalent to writing the following:
 
 Similar to the *each* command, *once* applies a method, function, or nested object once. The result object would be formatted as an object as opposed to an array as is the case for *each* results.
 
+---
+
 # Object Schema
 
 Harvestr is based on 'mapping' a web page for scraping with a JSON object. The basic structure is to start with 1 or more selectors as the top-level keys, and have any combination of methods, functions, or nested objects as values.
@@ -200,6 +206,9 @@ When saving your JSON to a file for command line use or loading in your node app
 		}
 	}
 
+	
+---
+	
 # API
 
 ## harvestr.get(url,schema,finish)
@@ -233,6 +242,8 @@ The following options can be set:
 *	`debug` : Number indicating log level. 0 for no console logging, 1 for errors, 2 for warnings and errors, 3 for info, warnings and errors, 4 for all of the above plus debug messages.
 *	`encoding` : Sets the default encoding for file read / writes. This can also be set in saved object schema meta info.
 
+---
+
 # Dependencies & Thanks 
 
 *	[Cheerio][dep1]
@@ -245,15 +256,21 @@ The following options can be set:
 [dep3]:	https://github.com/caolan/async
 [dep4]:	http://nodejs.org
 
+---
+
 # Don't Be Evil
 
 Web scraping or otherwise harvesting data this way can be a helpful tool for research or data mining. It can also be harmful to the source sites if implemented poorly. By design, Harvestr's batch method does not support concurrent requests. The batch method also has a timeout option between requests that I encourage you to use, as a courtesy to the site you're using.
 
 There can be, of course, legal issues with obtaining data from sites by these means as well. Many sites expressly prohibit this in their Terms of Use/Service. I am in no way responsible for the way you choose to use this code. 
 
+---
+
 # Who
 
 Wes Johnson. Find me on [Twitter](http://twitter.com/SterlingWes "@SterlingWes"), [LinkedIn](http://ca.linkedin.com/in/sterlingwes), [StackOverflow](http://stackoverflow.com/users/986611/wes-johnson), and [here](http://wesquire.ca "My Website").
+
+---
 
 # License
 
